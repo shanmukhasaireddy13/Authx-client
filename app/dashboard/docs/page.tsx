@@ -217,7 +217,7 @@ AUTHX_CLIENT_SECRET=sk_your_secret_here`} />
 
                         <TabsContent value="signup" className="space-y-4">
                             <p className="text-xs text-gray-500">Your backend receives the full form, saves your custom fields, then calls AuthX:</p>
-                            <CopyBlock lang="your backend → authx" code={`POST http://localhost:8080/api/v1/auth/signup
+                            <CopyBlock lang="your backend → authx" code={`POST ${process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.authx.com/v1"}/auth/signup
 Authorization: Basic base64(CLIENT_ID:CLIENT_SECRET)
 Content-Type: application/json
 
@@ -237,7 +237,7 @@ Content-Type: application/json
 
                         <TabsContent value="login" className="space-y-4">
                             <p className="text-xs text-gray-500">User logs in through your UI → your backend verifies with AuthX → returns the JWT to the user:</p>
-                            <CopyBlock lang="your backend → authx" code={`POST http://localhost:8080/api/v1/auth/login
+                            <CopyBlock lang="your backend → authx" code={`POST ${process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.authx.com/v1"}/auth/login
 Authorization: Basic base64(CLIENT_ID:CLIENT_SECRET)
 Content-Type: application/json
 
@@ -288,7 +288,7 @@ Content-Type: application/json
                         </div>
                     </div>
 
-                    <CopyBlock lang="your backend → authx" code={`POST http://localhost:8080/api/v1/auth/introspect
+                    <CopyBlock lang="your backend → authx" code={`POST ${process.env.NEXT_PUBLIC_BACKEND_URL || "https://api.authx.com/v1"}/auth/introspect
 Authorization: Basic base64(CLIENT_ID:CLIENT_SECRET)
 Content-Type: application/json
 

@@ -4,7 +4,7 @@ import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { CheckCircle2, XCircle, Loader2, Shield } from "lucide-react";
 
-const API_BASE = "http://localhost:8080/api/v1";
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 function VerifyContent() {
     const searchParams = useSearchParams();

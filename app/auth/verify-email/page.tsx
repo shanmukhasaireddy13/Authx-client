@@ -6,7 +6,7 @@ import Link from "next/link";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const API_BASE = "http://localhost:8080/api/v1";
+const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 function VerifyEmailContent() {
     const searchParams = useSearchParams();
