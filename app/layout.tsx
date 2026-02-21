@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AuthX — Developer Authentication Platform",
+  title: "AuthX - Developer Authentication Platform",
   description: "Manage API keys, generate JWTs, and secure your endpoints.",
 };
 
@@ -38,3 +38,4 @@ export default function RootLayout({
     </html>
   );
 }
+

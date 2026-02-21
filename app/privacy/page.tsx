@@ -1,113 +1,177 @@
 import Link from "next/link";
-import { ArrowLeft, Shield } from "lucide-react";
+import { ArrowLeft, Database, LockKeyhole, ScrollText, Shield, UserRoundCheck } from "lucide-react";
+
+const EFFECTIVE_DATE = "February 20, 2026";
+
+const sections = [
+    {
+        id: "collect",
+        title: "Information We Collect",
+        body: "We collect account, operational, and security data required to deliver authentication services and developer tooling.",
+        points: [
+            "Developer account data such as name, email, and workspace metadata.",
+            "Authentication event logs for security, fraud prevention, and troubleshooting.",
+            "Technical usage data such as IP address, browser metadata, and device signals.",
+        ],
+    },
+    {
+        id: "use",
+        title: "How We Use Data",
+        body: "Collected information is used to operate, secure, and improve AuthX services while maintaining tenant isolation and access controls.",
+        points: [
+            "Provision and maintain authentication APIs and dashboard features.",
+            "Send security notifications, service alerts, and account-critical updates.",
+            "Detect abuse, enforce platform limits, and maintain service reliability.",
+        ],
+    },
+    {
+        id: "sharing",
+        title: "Data Sharing and Processors",
+        body: "We use trusted subprocessors to run infrastructure, communications, and monitoring. Data access is scoped to the minimum required for each provider.",
+        points: [
+            "Service providers are contractually required to protect data.",
+            "We do not sell personal data or share end-user data for advertising.",
+            "Subprocessor access is limited to operational support functions.",
+        ],
+    },
+    {
+        id: "retention",
+        title: "Retention and Deletion",
+        body: "Data is retained only for legitimate business, legal, and security purposes. Deletion timelines are enforced through platform and operational controls.",
+        points: [
+            "Account holders can request deletion of account-level personal data.",
+            "Security logs may be retained for abuse prevention and compliance needs.",
+            "Backups are lifecycle-managed and removed under retention schedules.",
+        ],
+    },
+    {
+        id: "rights",
+        title: "Your Privacy Rights",
+        body: "Depending on region, you may have rights to access, correct, export, or delete your personal data. We support rights requests through support and privacy channels.",
+        points: [
+            "Right to know what personal data we process.",
+            "Right to request correction or deletion where applicable.",
+            "Right to object or restrict certain processing activities.",
+        ],
+    },
+    {
+        id: "security",
+        title: "Security Controls",
+        body: "AuthX applies layered safeguards, including encryption, credential hashing, role-based access, and continuous monitoring to protect platform data.",
+        points: [
+            "Encryption in transit using modern TLS standards.",
+            "Strong password hashing and secure credential handling.",
+            "Access controls and auditability for sensitive operations.",
+        ],
+    },
+];
 
 export default function PrivacyPolicy() {
     return (
-        <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] font-sans">
-            <header className="border-b border-[var(--border)] bg-[var(--background)] sticky top-0 z-50">
-                <div className="mx-auto flex h-16 max-w-7xl items-center px-6">
-                    <Link href="/" className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-[var(--foreground)] transition-colors">
+        <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+            <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.14),transparent_45%),radial-gradient(circle_at_80%_10%,rgba(59,130,246,0.10),transparent_35%)]" />
+
+            <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur">
+                <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+                    <Link href="/" className="inline-flex items-center text-sm font-medium text-gray-500 transition-colors hover:text-[var(--foreground)]">
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Back to Home
                     </Link>
+                    <div className="flex items-center gap-3 text-sm">
+                        <Link href="/terms" className="rounded-md border border-[var(--border)] px-3 py-1.5 text-gray-600 transition-colors hover:text-[var(--foreground)]">
+                            Terms of Service
+                        </Link>
+                    </div>
                 </div>
             </header>
 
-            <main className="mx-auto max-w-3xl px-6 py-20">
-                <div className="mb-12">
-                    <div className="inline-flex items-center justify-center p-3 rounded-xl bg-green-500/10 text-green-500 mb-6">
-                        <Shield className="h-8 w-8" />
+            <main className="mx-auto max-w-7xl px-6 py-12 md:py-16">
+                <section className="mb-10 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-8 shadow-sm">
+                    <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-200/70 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                        <ScrollText className="h-3.5 w-3.5" />
+                        Privacy Notice
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">Privacy Policy</h1>
-                    <p className="text-gray-500">Effective Date: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
-                </div>
+                    <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">Privacy Policy</h1>
+                    <p className="mt-4 max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-300">
+                        This policy explains what information AuthX collects, how we use it, and the controls available to developers and end users.
+                    </p>
+                    <div className="mt-6 flex flex-wrap gap-2 text-xs text-gray-500">
+                        <span className="rounded-full border border-[var(--border)] px-3 py-1">Effective date: {EFFECTIVE_DATE}</span>
+                        <span className="rounded-full border border-[var(--border)] px-3 py-1">Applies to dashboard and APIs</span>
+                    </div>
+                </section>
 
-                <div className="prose prose-gray dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-10 prose-h2:-mb-2 prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400">
-                    <p>
-                        AuthX Inc. ("us", "we", or "our") operates the AuthX platform. This page informs you of our policies regarding the collection, use, and disclosure of personal data when you use our Service and the choices you have associated with that data.
-                    </p>
-                    <p>
-                        We use your data to provide and improve the Service. By using the Service, you agree to the collection and use of information in accordance with this policy.
-                    </p>
+                <section className="grid gap-8 lg:grid-cols-[1fr_280px]">
+                    <article className="space-y-5">
+                        {sections.map((section, index) => (
+                            <section key={section.id} id={section.id} className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
+                                <div className="mb-2 flex items-center gap-2">
+                                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/10 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                                        {index + 1}
+                                    </span>
+                                    <h2 className="text-xl font-semibold">{section.title}</h2>
+                                </div>
+                                <p className="text-sm leading-6 text-gray-600 dark:text-gray-300">{section.body}</p>
+                                <ul className="mt-4 space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                                    {section.points.map((point) => (
+                                        <li key={point} className="flex items-start gap-2">
+                                            <Shield className="mt-0.5 h-4 w-4 shrink-0 text-emerald-500" />
+                                            <span>{point}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </section>
+                        ))}
+                    </article>
 
-                    <h2>1. Information We Collect</h2>
-                    <p>
-                        We collect several different types of information for various purposes to provide and improve our Service to you.
-                    </p>
+                    <aside className="space-y-4 lg:sticky lg:top-24 lg:h-fit">
+                        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm">
+                            <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
+                                <Database className="h-4 w-4 text-emerald-500" />
+                                Policy Overview
+                            </h2>
+                            <nav className="space-y-2 text-sm">
+                                {sections.map((section, index) => (
+                                    <a key={section.id} href={`#${section.id}`} className="block rounded-md px-2 py-1 text-gray-600 transition-colors hover:bg-zinc-100 hover:text-[var(--foreground)] dark:hover:bg-zinc-900">
+                                        {index + 1}. {section.title}
+                                    </a>
+                                ))}
+                            </nav>
+                        </div>
 
-                    <h3>For Developers (You)</h3>
-                    <ul>
-                        <li><strong>Personal Data:</strong> Email address, first name, last name, and billing information (if applicable).</li>
-                        <li><strong>Usage Data:</strong> Information on how the Developer Dashboard is accessed and used, IP addresses, browser types, and diagnostic data.</li>
-                    </ul>
+                        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm">
+                            <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                                <UserRoundCheck className="h-4 w-4 text-emerald-500" />
+                                Privacy Requests
+                            </h3>
+                            <p className="mb-2 text-sm text-gray-600 dark:text-gray-300">Submit requests or questions:</p>
+                            <a href="mailto:privacy@authx.dev" className="text-sm font-medium text-emerald-600 hover:underline dark:text-emerald-400">
+                                privacy@authx.dev
+                            </a>
+                        </div>
 
-                    <h3>For Your Users (End-Users)</h3>
-                    <p>
-                        As an authentication provider, AuthX acts as a processor for your applications. We securely store:
-                    </p>
-                    <ul>
-                        <li>Email addresses and usernames.</li>
-                        <li>Strongly hashed passwords (using industry-standard algorithms).</li>
-                        <li>Authentication metadata (login timestamps, IP addresses for security logging).</li>
-                    </ul>
-                    <p>We do not use end-user data for marketing, profiling, or sharing with third-party networks. It belongs entirely to your application tenant.</p>
-
-                    <h2>2. How We Use Data</h2>
-                    <p>
-                        AuthX Inc. uses the collected data for various purposes:
-                    </p>
-                    <ul>
-                        <li>To provide and maintain the Service, including the core Authentication API.</li>
-                        <li>To notify you about changes to our Service, rotating keys, or service outages.</li>
-                        <li>To provide customer care and support.</li>
-                        <li>To detect, prevent and address technical issues or anomalous sign-in attempts (fraud prevention).</li>
-                    </ul>
-
-                    <h2>3. Data Security and Infrastructure</h2>
-                    <p>
-                        The security of your data is paramount. AuthX utilizes modern cloud architecture to ensure data separation.
-                    </p>
-                    <ul>
-                        <li>All data is encrypted in transit using TLS 1.3.</li>
-                        <li>Secrets and passwords are cryptographically hashed; we cannot decrypt them.</li>
-                        <li>We do not store plain-text Developer API Secrets. They are generated once and hashed before storage.</li>
-                    </ul>
-                    <p>
-                        However, no method of transmission over the Internet is 100% secure. While we strive to use commercially acceptable means to protect your Personal Data, we cannot guarantee its absolute security.
-                    </p>
-
-                    <h2>4. Service Providers</h2>
-                    <p>
-                        We may employ third-party companies and individuals to facilitate our Service ("Service Providers"), to provide the Service on our behalf, or to assist us in analyzing how our Service is used.
-                    </p>
-                    <p>
-                        These third parties have access to your Personal Data only to perform these tasks on our behalf and are obligated not to disclose or use it for any other purpose. Examples include cloud hosting providers, email delivery services (e.g., Brevo), and error tracking tools.
-                    </p>
-
-                    <h2>5. Your Rights (GDPR / CCPA)</h2>
-                    <p>
-                        Depending on your location, you may have rights regarding your personal information, including the right to access, correct, delete, or restrict its use. You can exercise these rights through your Developer Dashboard or by contacting our Data Protection Officer.
-                    </p>
-
-                    <h2>6. Changes to This Privacy Policy</h2>
-                    <p>
-                        We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "effective date" at the top of this Privacy Policy.
-                    </p>
-
-                    <h2>Contact Us</h2>
-                    <p>
-                        If you have any questions about this Privacy Policy or wish to file a data request, please contact us by email at <a href="mailto:privacy@authx.dev" className="text-blue-500 no-underline hover:underline">privacy@authx.dev</a>.
-                    </p>
-                </div>
+                        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm">
+                            <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                                <LockKeyhole className="h-4 w-4 text-emerald-500" />
+                                Related Terms
+                            </h3>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                                Use of AuthX is also governed by our{" "}
+                                <Link href="/terms" className="font-medium text-emerald-600 hover:underline dark:text-emerald-400">
+                                    Terms of Service
+                                </Link>
+                                .
+                            </p>
+                        </div>
+                    </aside>
+                </section>
             </main>
 
-            <footer className="w-full border-t border-[var(--border)] py-8 px-6 mt-20 bg-[var(--background)]">
-                <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="text-sm text-gray-500">
-                        © {new Date().getFullYear()} AuthX Inc. All rights reserved.
-                    </div>
-                    <div className="flex gap-4 text-sm text-gray-500">
-                        <Link href="/terms" className="hover:text-[var(--foreground)] transition-colors">Terms of Service</Link>
+            <footer className="border-t border-[var(--border)] bg-[var(--background)]">
+                <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-6 text-sm text-gray-500 md:flex-row">
+                    <p>© {new Date().getFullYear()} AuthX Inc. All rights reserved.</p>
+                    <div className="flex items-center gap-4">
+                        <Link href="/terms" className="transition-colors hover:text-[var(--foreground)]">Terms of Service</Link>
                     </div>
                 </div>
             </footer>

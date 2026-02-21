@@ -5,8 +5,9 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { getPublicApiBase } from "@/lib/runtime-config";
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
+const API_BASE = getPublicApiBase();
 
 function VerifyEmailContent() {
     const searchParams = useSearchParams();

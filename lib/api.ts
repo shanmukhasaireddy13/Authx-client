@@ -1,4 +1,6 @@
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL;
+import { getPublicApiBase } from "./runtime-config";
+
+const API_BASE = getPublicApiBase();
 
 // ====== Types ======
 
@@ -54,15 +56,20 @@ export interface ApiResponse {
 
 function getToken(): string | null {
     if (typeof window === "undefined") return null;
-    return localStorage.getItem("authx_token");
+    const match = document.cookie.match(new RegExp('(^| )authx_token=([^;]+)'));
+    if (match) return match[2];
+    return null;
 }
 
 export function setToken(token: string) {
-    localStorage.setItem("authx_token", token);
+    if (typeof window === "undefined") return;
+    const maxAge = 7 * 24 * 60 * 60; // 7 days
+    document.cookie = `authx_token=${token}; path=/; max-age=${maxAge}; SameSite=Lax; Secure`;
 }
 
 export function removeToken() {
-    localStorage.removeItem("authx_token");
+    if (typeof window === "undefined") return;
+    document.cookie = "authx_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
 }
 
 export function isLoggedIn(): boolean {
@@ -83,20 +90,32 @@ async function request<T>(
         headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const res = await fetch(`${API_BASE}${endpoint}`, {
-        ...options,
-        headers,
-    });
+    try {
+        const res = await fetch(`${API_BASE}${endpoint}`, {
+            ...options,
+            headers,
+        });
 
-    if (!res.ok) {
-        const error = await res.json().catch(() => ({ message: "Request failed" }));
-        throw new Error(error.message || error.error || `HTTP ${res.status}`);
+        if (!res.ok) {
+            const error = await res.json().catch(() => ({ message: "Request failed" }));
+            throw new Error(error.message || error.error || `HTTP ${res.status}`);
+        }
+
+        // Handle 204 No Content
+        if (res.status === 204) return {} as T;
+
+        return res.json();
+    } catch (error) {
+        // `fetch` only throws a TypeError when a network error occurs (e.g., connection refused, DNS lookup failed).
+        // It does not throw on HTTP error statuses (4xx, 5xx), which are handled above.
+        if (error instanceof TypeError) {
+            if (typeof window !== "undefined") {
+                // Redirect user to the network error page
+                window.location.href = "/network-error";
+            }
+        }
+        throw error;
     }
-
-    // Handle 204 No Content
-    if (res.status === 204) return {} as T;
-
-    return res.json();
 }
 
 // ====== Auth APIs ======

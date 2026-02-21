@@ -1,98 +1,177 @@
 import Link from "next/link";
-import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { ArrowLeft, BookOpenText, CircleHelp, FileCheck2, Scale, ShieldCheck } from "lucide-react";
+
+const LAST_UPDATED = "February 20, 2026";
+
+const sections = [
+    {
+        id: "accounts",
+        title: "Accounts and Eligibility",
+        body: "You are responsible for maintaining accurate account information and securing your credentials. Access to the platform is granted only to users who can form a legally binding agreement.",
+        points: [
+            "Provide accurate registration data and keep it current.",
+            "Protect your password, API credentials, and account access.",
+            "You are responsible for actions performed under your account.",
+        ],
+    },
+    {
+        id: "acceptable-use",
+        title: "Acceptable Use",
+        body: "Your use of AuthX must comply with applicable law and fair use standards. We reserve the right to suspend abusive, disruptive, or unauthorized usage.",
+        points: [
+            "Do not attempt to bypass security controls or rate limits.",
+            "Do not use the service for unlawful, fraudulent, or abusive activities.",
+            "Do not interfere with platform stability, reliability, or availability.",
+        ],
+    },
+    {
+        id: "api-license",
+        title: "API License and Restrictions",
+        body: "AuthX grants a limited, revocable, non-transferable license to integrate our API for lawful business use. This license does not transfer intellectual property ownership.",
+        points: [
+            "Use the API only for authorized applications and workloads.",
+            "Do not resell, sublicense, or reverse engineer proprietary platform components.",
+            "We may enforce quotas and technical safeguards to protect service integrity.",
+        ],
+    },
+    {
+        id: "data-security",
+        title: "Data and Security",
+        body: "We implement technical and organizational measures to protect account and authentication data. You remain responsible for secure use of your own systems and integrations.",
+        points: [
+            "Security controls are detailed in our Privacy Policy.",
+            "No online system can guarantee absolute security at all times.",
+            "You must promptly report suspected unauthorized access or incidents.",
+        ],
+    },
+    {
+        id: "fees-termination",
+        title: "Service Changes and Termination",
+        body: "We may modify, suspend, or discontinue features to maintain platform quality and security. We may also suspend accounts that breach these terms or create operational risk.",
+        points: [
+            "Material updates may be communicated before taking effect.",
+            "You may stop using the service at any time.",
+            "Upon termination, platform access and related licenses end immediately.",
+        ],
+    },
+    {
+        id: "liability",
+        title: "Disclaimers and Liability Limits",
+        body: "The service is provided on an as-available basis. To the maximum extent permitted by law, AuthX is not liable for indirect, incidental, or consequential damages arising from service use.",
+        points: [
+            "No guarantee of uninterrupted or error-free service.",
+            "You are responsible for maintaining your own backups and contingency plans.",
+            "Liability limitations apply to all claims connected to service usage.",
+        ],
+    },
+];
 
 export default function TermsOfService() {
     return (
-        <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)] font-sans">
-            <header className="border-b border-[var(--border)] bg-[var(--background)] sticky top-0 z-50">
-                <div className="mx-auto flex h-16 max-w-7xl items-center px-6">
-                    <Link href="/" className="inline-flex items-center text-sm font-medium text-gray-500 hover:text-[var(--foreground)] transition-colors">
+        <div className="min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+            <div className="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.10),transparent_42%),radial-gradient(circle_at_80%_10%,rgba(16,185,129,0.10),transparent_35%)]" />
+
+            <header className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--background)]/90 backdrop-blur">
+                <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+                    <Link href="/" className="inline-flex items-center text-sm font-medium text-gray-500 transition-colors hover:text-[var(--foreground)]">
                         <ArrowLeft className="mr-2 h-4 w-4" />
                         Back to Home
                     </Link>
+                    <div className="flex items-center gap-3 text-sm">
+                        <Link href="/privacy" className="rounded-md border border-[var(--border)] px-3 py-1.5 text-gray-600 transition-colors hover:text-[var(--foreground)]">
+                            Privacy Policy
+                        </Link>
+                    </div>
                 </div>
             </header>
 
-            <main className="mx-auto max-w-3xl px-6 py-20">
-                <div className="mb-12">
-                    <div className="inline-flex items-center justify-center p-3 rounded-xl bg-blue-500/10 text-blue-500 mb-6">
-                        <ShieldCheck className="h-8 w-8" />
+            <main className="mx-auto max-w-7xl px-6 py-12 md:py-16">
+                <section className="mb-10 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-8 shadow-sm">
+                    <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-blue-200/60 bg-blue-500/10 px-3 py-1 text-xs font-medium text-blue-700 dark:text-blue-300">
+                        <FileCheck2 className="h-3.5 w-3.5" />
+                        Legal Agreement
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-4">Terms of Service</h1>
-                    <p className="text-gray-500">Last updated: {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
-                </div>
+                    <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">Terms of Service</h1>
+                    <p className="mt-4 max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-300">
+                        These Terms of Service govern access to and use of the AuthX platform. By creating an account or using AuthX services, you agree to these terms.
+                    </p>
+                    <div className="mt-6 flex flex-wrap gap-2 text-xs text-gray-500">
+                        <span className="rounded-full border border-[var(--border)] px-3 py-1">Last updated: {LAST_UPDATED}</span>
+                        <span className="rounded-full border border-[var(--border)] px-3 py-1">Applies to all AuthX users</span>
+                    </div>
+                </section>
 
-                <div className="prose prose-gray dark:prose-invert max-w-none prose-headings:font-bold prose-h2:text-2xl prose-h2:mt-10 prose-h2:-mb-2 prose-p:text-gray-600 dark:prose-p:text-gray-400 prose-li:text-gray-600 dark:prose-li:text-gray-400">
-                    <p>
-                        Please read these Terms of Service ("Terms", "Terms of Service") carefully before using the AuthX platform operated by AuthX Inc ("us", "we", or "our").
-                    </p>
-                    <p>
-                        Your access to and use of the Service is conditioned on your acceptance of and compliance with these Terms. These Terms apply to all visitors, users, and others who access or use the Service.
-                    </p>
+                <section className="grid gap-8 lg:grid-cols-[260px_1fr]">
+                    <aside className="space-y-4 lg:sticky lg:top-24 lg:h-fit">
+                        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm">
+                            <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
+                                <BookOpenText className="h-4 w-4 text-blue-500" />
+                                Quick Navigation
+                            </h2>
+                            <nav className="space-y-2 text-sm">
+                                {sections.map((section, index) => (
+                                    <a key={section.id} href={`#${section.id}`} className="block rounded-md px-2 py-1 text-gray-600 transition-colors hover:bg-zinc-100 hover:text-[var(--foreground)] dark:hover:bg-zinc-900">
+                                        {index + 1}. {section.title}
+                                    </a>
+                                ))}
+                            </nav>
+                        </div>
 
-                    <h2>1. Accounts and Authentication</h2>
-                    <p>
-                        When you create an account with us, you must provide us information that is accurate, complete, and current at all times. Failure to do so constitutes a breach of the Terms, which may result in immediate termination of your account on our Service.
-                    </p>
-                    <p>
-                        You are responsible for safeguarding the password and API keys that you use to access the Service and for any activities or actions under your credentials. You agree not to disclose your password or API keys to any third party.
-                    </p>
+                        <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm">
+                            <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
+                                <CircleHelp className="h-4 w-4 text-blue-500" />
+                                Contact
+                            </h3>
+                            <p className="mb-2 text-sm text-gray-600 dark:text-gray-300">Questions about these terms:</p>
+                            <a href="mailto:legal@authx.dev" className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400">
+                                legal@authx.dev
+                            </a>
+                        </div>
+                    </aside>
 
-                    <h2>2. API Usage and Rate Limiting</h2>
-                    <p>
-                        We grant you a limited, non-exclusive, non-transferable, revocable license to use the AuthX API solely to develop and operate applications that interoperate with our services.
-                    </p>
-                    <ul>
-                        <li>You agree not to deliberately circumvent our rate limits or abuse our infrastructure.</li>
-                        <li>We reserve the right to throttle or suspend API requests that exceed acceptable usage patterns or degrade system performance.</li>
-                        <li>You may not use the API for any illegal or unauthorized purpose.</li>
-                    </ul>
+                    <article className="space-y-5">
+                        {sections.map((section, index) => (
+                            <section key={section.id} id={section.id} className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
+                                <div className="mb-2 flex items-center gap-2">
+                                    <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-500/10 text-xs font-semibold text-blue-700 dark:text-blue-300">
+                                        {index + 1}
+                                    </span>
+                                    <h2 className="text-xl font-semibold">{section.title}</h2>
+                                </div>
+                                <p className="text-sm leading-6 text-gray-600 dark:text-gray-300">{section.body}</p>
+                                <ul className="mt-4 space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                                    {section.points.map((point) => (
+                                        <li key={point} className="flex items-start gap-2">
+                                            <Scale className="mt-0.5 h-4 w-4 shrink-0 text-blue-500" />
+                                            <span>{point}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </section>
+                        ))}
 
-                    <h2>3. Data Privacy and Security</h2>
-                    <p>
-                        Our privacy practices are detailed in our <Link href="/privacy" className="text-blue-500 no-underline hover:underline">Privacy Policy</Link>. By using AuthX, you agree that we can collect and use data as described in that policy.
-                    </p>
-                    <p>
-                        While we employ bank-grade security and industry standards to protect your application data and user identities, we cannot guarantee absolute security against advanced persistent threats.
-                    </p>
-
-                    <h2>4. Intellectual Property</h2>
-                    <p>
-                        The Service and its original content (excluding Content provided by users), features, and functionality are and will remain the exclusive property of AuthX Inc and its licensors. Our trademarks and trade dress may not be used in connection with any product or service without the prior written consent of AuthX.
-                    </p>
-
-                    <h2>5. Termination</h2>
-                    <p>
-                        We may terminate or suspend your account immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms.
-                    </p>
-                    <p>
-                        Upon termination, your right to use the Service will immediately cease. If you wish to terminate your account, you may simply discontinue using the Service or delete your applications via the Developer Dashboard.
-                    </p>
-
-                    <h2>6. Limitation of Liability</h2>
-                    <p>
-                        In no event shall AuthX, nor its directors, employees, partners, agents, suppliers, or affiliates, be liable for any indirect, incidental, special, consequential or punitive damages, including without limitation, loss of profits, data, use, goodwill, or other intangible losses, resulting from (i) your access to or use of or inability to access or use the Service; (ii) any conduct or content of any third party on the Service.
-                    </p>
-
-                    <h2>7. Changes to Terms</h2>
-                    <p>
-                        We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will try to provide at least 30 days notice prior to any new terms taking effect.
-                    </p>
-
-                    <h2>Contact Us</h2>
-                    <p>
-                        If you have any questions about these Terms, please contact us at <a href="mailto:legal@authx.dev" className="text-blue-500 no-underline hover:underline">legal@authx.dev</a>.
-                    </p>
-                </div>
+                        <section className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
+                            <h2 className="mb-2 flex items-center gap-2 text-xl font-semibold">
+                                <ShieldCheck className="h-5 w-5 text-blue-500" />
+                                Related Policies
+                            </h2>
+                            <p className="text-sm text-gray-600 dark:text-gray-300">
+                                Our data handling practices are detailed in the{" "}
+                                <Link href="/privacy" className="font-medium text-blue-600 hover:underline dark:text-blue-400">
+                                    Privacy Policy
+                                </Link>
+                                .
+                            </p>
+                        </section>
+                    </article>
+                </section>
             </main>
 
-            <footer className="w-full border-t border-[var(--border)] py-8 px-6 mt-20 bg-[var(--background)]">
-                <div className="mx-auto max-w-7xl flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="text-sm text-gray-500">
-                        © {new Date().getFullYear()} AuthX Inc. All rights reserved.
-                    </div>
-                    <div className="flex gap-4 text-sm text-gray-500">
-                        <Link href="/privacy" className="hover:text-[var(--foreground)] transition-colors">Privacy Policy</Link>
+            <footer className="border-t border-[var(--border)] bg-[var(--background)]">
+                <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-6 text-sm text-gray-500 md:flex-row">
+                    <p>© {new Date().getFullYear()} AuthX Inc. All rights reserved.</p>
+                    <div className="flex items-center gap-4">
+                        <Link href="/privacy" className="transition-colors hover:text-[var(--foreground)]">Privacy Policy</Link>
                     </div>
                 </div>
             </footer>

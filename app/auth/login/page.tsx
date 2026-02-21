@@ -37,6 +37,12 @@ export default function LoginPage() {
                 <p className="text-sm text-gray-500">
                     Enter your email to sign in to your account
                 </p>
+                <p className="text-xs text-gray-500">
+                    Need integration help?{" "}
+                    <Link href="/docs" className="underline underline-offset-4 hover:text-[var(--foreground)] transition-colors">
+                        View docs
+                    </Link>
+                </p>
             </div>
 
             <form onSubmit={handleSubmit} className="grid gap-5">
@@ -93,7 +99,7 @@ export default function LoginPage() {
                 <div className="grid gap-2">
                     <div className="flex items-center justify-between">
                         <Label htmlFor="password" className="text-[var(--foreground)]">Password</Label>
-                        <Link href="#" className="text-sm font-medium text-gray-500 hover:text-blue-500 transition-colors">
+                        <Link href="mailto:support@authx.dev" className="text-sm font-medium text-gray-500 hover:text-blue-500 transition-colors">
                             Forgot password?
                         </Link>
                     </div>
@@ -115,6 +121,18 @@ export default function LoginPage() {
                 <Link href="/auth/signup" className="underline underline-offset-4 hover:text-[var(--foreground)] transition-colors">
                     Sign up
                 </Link>
+            </p>
+
+            <p className="px-8 text-center text-xs text-gray-500 lg:text-left lg:px-0">
+                By signing in, you agree to our{" "}
+                <Link href="/terms" className="underline underline-offset-4 hover:text-[var(--foreground)] transition-colors">
+                    Terms
+                </Link>{" "}
+                and{" "}
+                <Link href="/privacy" className="underline underline-offset-4 hover:text-[var(--foreground)] transition-colors">
+                    Privacy Policy
+                </Link>
+                .
             </p>
         </div>
     );

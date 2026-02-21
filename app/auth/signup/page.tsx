@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -13,6 +14,7 @@ export default function SignupPage() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [acceptedPolicies, setAcceptedPolicies] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
     const [loading, setLoading] = useState(false);
@@ -22,6 +24,12 @@ export default function SignupPage() {
         e.preventDefault();
         setError("");
         setSuccess("");
+
+        if (!acceptedPolicies) {
+            setError("Please accept the Terms of Service and Privacy Policy to continue.");
+            return;
+        }
+
         setLoading(true);
         try {
             const res = await apiRegister({ username: name, email, password });
@@ -40,6 +48,12 @@ export default function SignupPage() {
                 <h1 className="text-3xl font-semibold tracking-tight text-[var(--foreground)]">Create an account</h1>
                 <p className="text-sm text-gray-500">
                     Enter your information to get started with AuthX
+                </p>
+                <p className="text-xs text-gray-500">
+                    New to AuthX?{" "}
+                    <Link href="/docs" className="underline underline-offset-4 hover:text-[var(--foreground)] transition-colors">
+                        Read the docs
+                    </Link>
                 </p>
             </div>
 
@@ -117,28 +131,41 @@ export default function SignupPage() {
                     <PasswordInput
                         id="password"
                         required
+                        minLength={8}
                         autoComplete="new-password"
                         className="input-field"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
+                    <p className="text-xs text-gray-500">Use at least 8 characters.</p>
                 </div>
-                <Button type="submit" disabled={loading} className="btn-primary w-full shadow-sm transition-transform active:scale-[0.98]">
+
+                <div className="rounded-md border border-[var(--border)] bg-[var(--card)] p-3">
+                    <div className="flex items-start gap-3">
+                        <Checkbox
+                            id="accept-policies"
+                            checked={acceptedPolicies}
+                            onCheckedChange={(checked) => setAcceptedPolicies(checked === true)}
+                            className="mt-0.5"
+                        />
+                        <Label htmlFor="accept-policies" className="text-sm leading-6 text-gray-500">
+                            I agree to the{" "}
+                            <Link href="/terms" className="underline underline-offset-4 hover:text-[var(--foreground)] transition-colors">
+                                Terms of Service
+                            </Link>{" "}
+                            and{" "}
+                            <Link href="/privacy" className="underline underline-offset-4 hover:text-[var(--foreground)] transition-colors">
+                                Privacy Policy
+                            </Link>
+                            .
+                        </Label>
+                    </div>
+                </div>
+
+                <Button type="submit" disabled={loading || !acceptedPolicies} className="btn-primary w-full shadow-sm transition-transform active:scale-[0.98]">
                     {loading ? "Creating Account..." : "Create Account"}
                 </Button>
             </form>
-
-            <p className="px-8 text-center text-sm text-gray-500 mt-6 lg:text-left lg:px-0">
-                By clicking continue, you agree to our{" "}
-                <Link href="#" className="underline underline-offset-4 hover:text-[var(--foreground)] transition-colors">
-                    Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link href="#" className="underline underline-offset-4 hover:text-[var(--foreground)] transition-colors">
-                    Privacy Policy
-                </Link>
-                .
-            </p>
 
             <p className="px-8 text-center text-sm text-gray-500 mt-2 lg:text-left lg:px-0">
                 Already have an account?{" "}
