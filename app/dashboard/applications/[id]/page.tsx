@@ -218,8 +218,8 @@ export default function ApplicationDetailsPage({ params }: { params: Promise<{ i
                     <div className="flex items-center gap-2">
                         <span
                             className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium ${app.is_active
-                                    ? "border-green-200 bg-green-50 text-green-700 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-400"
-                                    : "border-gray-200 bg-gray-100 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+                                ? "border-green-200 bg-green-50 text-green-700 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-400"
+                                : "border-gray-200 bg-gray-100 text-gray-600 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
                                 }`}
                         >
                             <span className={`h-1.5 w-1.5 rounded-full ${app.is_active ? "bg-green-500" : "bg-gray-400"}`} />
@@ -289,8 +289,8 @@ export default function ApplicationDetailsPage({ params }: { params: Promise<{ i
                                             <div className="sm:col-span-2">
                                                 <span
                                                     className={`inline-flex rounded-md border px-2 py-0.5 text-[11px] font-medium ${user.isEmailVerified
-                                                            ? "border-green-200 bg-green-50 text-green-700 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-400"
-                                                            : "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-400"
+                                                        ? "border-green-200 bg-green-50 text-green-700 dark:border-green-500/20 dark:bg-green-500/10 dark:text-green-400"
+                                                        : "border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-400"
                                                         }`}
                                                 >
                                                     {user.isEmailVerified ? "Verified" : "Pending"}
@@ -429,8 +429,8 @@ export default function ApplicationDetailsPage({ params }: { params: Promise<{ i
                                     <Label
                                         htmlFor="strategy-otp"
                                         className={`flex cursor-pointer flex-col gap-1 rounded-xl border-2 p-4 transition-all ${passwordResetStrategy === "OTP"
-                                                ? "border-primary bg-primary/5"
-                                                : "border-muted hover:border-primary/50"
+                                            ? "border-primary bg-primary/5"
+                                            : "border-muted hover:border-primary/50"
                                             }`}
                                     >
                                         <div className="flex items-center gap-2 mb-1">
@@ -445,8 +445,8 @@ export default function ApplicationDetailsPage({ params }: { params: Promise<{ i
                                     <Label
                                         htmlFor="strategy-magic-link"
                                         className={`flex cursor-pointer flex-col gap-1 rounded-xl border-2 p-4 transition-all ${passwordResetStrategy === "MAGIC_LINK"
-                                                ? "border-primary bg-primary/5"
-                                                : "border-muted hover:border-primary/50"
+                                            ? "border-primary bg-primary/5"
+                                            : "border-muted hover:border-primary/50"
                                             }`}
                                     >
                                         <div className="flex items-center gap-2 mb-1">
@@ -531,7 +531,7 @@ export default function ApplicationDetailsPage({ params }: { params: Promise<{ i
                             </div>
 
                         </CardContent>
-                        <CardFooter className="bg-muted/50 border-t px-6 py-4 justify-between">
+                        <CardFooter className="bg-muted/50 border-t px-6 py-4 justify-between mt-6">
                             <p className="text-sm text-muted-foreground">Settings take effect immediately for new requests.</p>
                             <Button onClick={handleSaveSettings} disabled={isSaving}>
                                 {isSaving ? "Saving..." : copied === "saved" ? "Saved Successfully!" : "Save Preferences"}

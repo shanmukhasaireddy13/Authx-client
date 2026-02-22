@@ -19,7 +19,8 @@ const sections = [
         title: "Acceptable Use",
         body: "Your use of AuthX must comply with applicable law and fair use standards. We reserve the right to suspend abusive, disruptive, or unauthorized usage.",
         points: [
-            "Do not attempt to bypass security controls or rate limits.",
+            "Do not attempt to bypass security controls, rate limits, or exploit public reset/verification APIs.",
+            "Account owners are responsible for configuring safe OTP/Magic Link expirations for their applications.",
             "Do not use the service for unlawful, fraudulent, or abusive activities.",
             "Do not interfere with platform stability, reliability, or availability.",
         ],

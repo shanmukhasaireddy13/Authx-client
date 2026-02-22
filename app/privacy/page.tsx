@@ -10,6 +10,7 @@ const sections = [
         body: "We collect account, operational, and security data required to deliver authentication services and developer tooling.",
         points: [
             "Developer account data such as name, email, and workspace metadata.",
+            "End-User authentication data during public flows (e.g., OTP and Magic Link verifications) operated on behalf of developers.",
             "Authentication event logs for security, fraud prevention, and troubleshooting.",
             "Technical usage data such as IP address, browser metadata, and device signals.",
         ],
