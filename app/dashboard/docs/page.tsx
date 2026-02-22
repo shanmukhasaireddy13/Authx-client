@@ -70,6 +70,7 @@ export default function DocsPage() {
     { id: "credentials", label: "Credentials" },
     { id: "signup", label: "Signup Flow" },
     { id: "login", label: "Login Flow" },
+    { id: "password-reset", label: "Password Reset" },
     { id: "introspect", label: "Token Validation" },
     { id: "errors", label: "Error Handling" },
     { id: "go-live", label: "Go Live Checklist" },
@@ -176,6 +177,34 @@ export default function DocsPage() {
                 title="Success response"
                 code={`{\n  "access_token": "eyJhbGciOiJIUzI1NiJ9...",\n  "token_type": "Bearer",\n  "expires_in": 3600\n}`}
               />
+            </div>
+          </DocSection>
+
+          <DocSection id="password-reset" title="Password Reset Flows" description="Allow users to retrieve their accounts safely with OTP or magic links.">
+            <div className="space-y-5">
+              <div>
+                <h3 className="mb-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Step 1: Initiate Reset</h3>
+                <CopyBlock
+                  title="POST /auth/forgot-password"
+                  code={`POST ${apiBase}/auth/forgot-password\nAuthorization: Basic base64(CLIENT_ID:CLIENT_SECRET)\nContent-Type: application/json\n\n{\n  "identifier": "user@example.com"\n}`}
+                />
+              </div>
+
+              <div className="pt-2">
+                <h3 className="mb-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Step 2: Complete via Magic Link</h3>
+                <CopyBlock
+                  title="POST /auth/reset-password/magic-link"
+                  code={`POST ${apiBase}/auth/reset-password/magic-link\nContent-Type: application/json\n\n{\n  "token": "secret-token-from-email",\n  "newPassword": "new-strong-password"\n}`}
+                />
+              </div>
+
+              <div className="pt-2">
+                <h3 className="mb-2 text-sm font-semibold text-zinc-900 dark:text-zinc-100">Step 2: Complete via OTP (Alternative)</h3>
+                <CopyBlock
+                  title="POST /auth/reset-password/otp"
+                  code={`POST ${apiBase}/auth/reset-password/otp\nContent-Type: application/json\n\n{\n  "identifier": "user@example.com",\n  "otp": "123456",\n  "newPassword": "new-strong-password"\n}`}
+                />
+              </div>
             </div>
           </DocSection>
 

@@ -23,6 +23,11 @@ export interface ApplicationResponse {
     app_name: string;
     client_id: string;
     jwt_expiry_minutes: number;
+    otp_length: number;
+    otp_type: "NUMERIC" | "ALPHANUMERIC";
+    otp_expiry_minutes: number;
+    magic_link_expiry_minutes: number;
+    password_reset_strategy: "OTP" | "MAGIC_LINK";
     is_active: boolean;
     created_at: string;
 }
@@ -50,6 +55,30 @@ export interface ApplicationUserResponse {
 
 export interface ApiResponse {
     message: string;
+}
+
+export interface ApiErrorPayload {
+    status?: number;
+    code?: string;
+    message?: string;
+    path?: string;
+    details?: Record<string, string>;
+}
+
+export class ApiError extends Error {
+    status: number;
+    code?: string;
+    path?: string;
+    details?: Record<string, string>;
+
+    constructor(message: string, payload?: ApiErrorPayload) {
+        super(message);
+        this.name = "ApiError";
+        this.status = payload?.status ?? 0;
+        this.code = payload?.code;
+        this.path = payload?.path;
+        this.details = payload?.details;
+    }
 }
 
 // ====== Helpers ======
@@ -97,8 +126,14 @@ async function request<T>(
         });
 
         if (!res.ok) {
-            const error = await res.json().catch(() => ({ message: "Request failed" }));
-            throw new Error(error.message || error.error || `HTTP ${res.status}`);
+            const error = await res.json().catch(() => ({} as ApiErrorPayload));
+            const fallbackMessage = `HTTP ${res.status}`;
+            throw new ApiError(error.message || fallbackMessage, {
+                status: res.status,
+                code: error.code,
+                path: error.path,
+                details: error.details,
+            });
         }
 
         // Handle 204 No Content
@@ -169,7 +204,16 @@ export async function apiGetApplicationById(
 
 export async function apiUpdateApplication(
     id: string,
-    data: { app_name?: string; jwt_expiry_minutes?: number; is_active?: boolean }
+    data: {
+        app_name?: string;
+        jwt_expiry_minutes?: number;
+        is_active?: boolean;
+        otp_length?: number;
+        otp_type?: string;
+        otp_expiry_minutes?: number;
+        magic_link_expiry_minutes?: number;
+        password_reset_strategy?: string;
+    }
 ): Promise<ApplicationResponse> {
     return request<ApplicationResponse>(`/admin/applications/${id}`, {
         method: "PUT",
@@ -223,6 +267,62 @@ export async function apiChangePassword(data: {
     newPassword: string;
 }): Promise<ApiResponse> {
     return request<ApiResponse>("/admin/change-password", {
+        method: "POST",
+        body: JSON.stringify(data),
+    });
+}
+
+export async function apiAdminForgotPassword(data: {
+    email: string;
+}): Promise<ApiResponse> {
+    return request<ApiResponse>("/admin/forgot-password", {
+        method: "POST",
+        body: JSON.stringify(data),
+    });
+}
+
+
+
+export async function apiAdminResetPasswordWithMagicLink(data: {
+    token: string;
+    newPassword: string;
+}): Promise<ApiResponse> {
+    return request<ApiResponse>("/admin/reset-password/magic-link", {
+        method: "POST",
+        body: JSON.stringify(data),
+    });
+}
+
+// ====== End-User Auth APIs ======
+
+export async function apiForgotPassword(clientId: string, data: {
+    identifier: string;
+}): Promise<ApiResponse> {
+    return request<ApiResponse>("/auth/forgot-password", {
+        method: "POST",
+        headers: {
+            "Authorization": `Basic ${btoa(`${clientId}:`)}`
+        },
+        body: JSON.stringify(data),
+    });
+}
+
+export async function apiResetPasswordWithOtp(data: {
+    identifier: string;
+    otp: string;
+    newPassword: string;
+}): Promise<ApiResponse> {
+    return request<ApiResponse>("/auth/reset-password/otp", {
+        method: "POST",
+        body: JSON.stringify(data),
+    });
+}
+
+export async function apiResetPasswordWithMagicLink(data: {
+    token: string;
+    newPassword: string;
+}): Promise<ApiResponse> {
+    return request<ApiResponse>("/auth/reset-password/magic-link", {
         method: "POST",
         body: JSON.stringify(data),
     });

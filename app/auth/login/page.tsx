@@ -99,7 +99,7 @@ export default function LoginPage() {
                 <div className="grid gap-2">
                     <div className="flex items-center justify-between">
                         <Label htmlFor="password" className="text-[var(--foreground)]">Password</Label>
-                        <Link href="mailto:support@authx.dev" className="text-sm font-medium text-gray-500 hover:text-blue-500 transition-colors">
+                        <Link href="/auth/forgot-password" className="text-sm font-medium text-gray-500 hover:text-blue-500 transition-colors">
                             Forgot password?
                         </Link>
                     </div>
