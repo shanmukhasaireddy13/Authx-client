@@ -76,7 +76,7 @@ function VerifyContent() {
                 </p>
                 <p className="text-xs text-gray-500">
                     Having trouble?{" "}
-                    <Link href="/support" className="underline underline-offset-4 hover:text-[var(--foreground)] transition-colors">
+                    <Link href="/support/user" className="underline underline-offset-4 hover:text-[var(--foreground)] transition-colors">
                         View support
                     </Link>
                 </p>
