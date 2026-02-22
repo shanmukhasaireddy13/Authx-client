@@ -1,244 +1,237 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
-    Activity,
-    AlertCircle,
     ArrowLeft,
     CheckCircle2,
-    Database,
-    Globe,
-    Server,
-    Shield,
+    Activity,
+    AlertCircle,
     XCircle,
+    Info,
+    RefreshCw,
     Clock,
-    ArrowUpRight,
+    ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
-import { format, subDays } from "date-fns";
+import { format } from "date-fns";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { apiGetSystemStatus, ServiceStatusDto, ResponseTimeDto } from "@/lib/api";
+import { SiteFooter } from "@/components/site-footer";
 
 function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-// --- Types ---
-type ServiceStatus = "operational" | "degraded" | "outage";
-
-interface DayStatus {
-    date: Date;
-    status: ServiceStatus;
-    uptime: number;
-}
-
-interface Service {
-    id: string;
-    name: string;
-    icon: React.ReactNode;
-    uptime90: number;
-    history: DayStatus[];
-}
-
-interface IncidentUpdate {
-    time: Date;
-    message: string;
-}
-
-interface Incident {
-    id: string;
-    title: string;
-    status: "investigating" | "identified" | "monitoring" | "resolved";
-    date: Date;
-    updates: IncidentUpdate[];
-    impactedServices: string[];
-}
-
-// --- Mock Data Generation ---
-const NUM_DAYS = 60;
-
-const generateHistory = (seed: number): DayStatus[] => {
-    const pseudoRandom = (curSeed: number) => {
-        let x = Math.sin(curSeed++) * 10000;
-        return x - Math.floor(x);
-    };
-
-    return Array.from({ length: NUM_DAYS })
-        .map((_, i) => {
-            const date = subDays(new Date(), NUM_DAYS - 1 - i);
-            const rand = pseudoRandom(seed + i);
-
-            let status: ServiceStatus = "operational";
-            let uptime = 100;
-
-            if (rand > 0.98) {
-                status = "outage";
-                uptime = 100 - (pseudoRandom(seed + i + 100) * 5 + 1);
-            } else if (rand > 0.95) {
-                status = "degraded";
-                uptime = 100 - (pseudoRandom(seed + i + 200) * 1 + 0.1);
-            }
-
-            // Ensure recent days look good globally
-            if (i > NUM_DAYS - 8) {
-                status = "operational";
-                uptime = 100;
-            }
-
-            return { date, status, uptime };
-        });
-};
-
-const mockServices: Service[] = [
-    {
-        id: "api",
-        name: "Authentication API",
-        icon: <Server className="w-5 h-5 text-blue-500" />,
-        uptime90: 99.98,
-        history: generateHistory(123),
-    },
-    {
-        id: "db",
-        name: "Core Databases",
-        icon: <Database className="w-5 h-5 text-purple-500" />,
-        uptime90: 99.95,
-        history: generateHistory(456),
-    },
-    {
-        id: "dash",
-        name: "Admin Dashboard",
-        icon: <Globe className="w-5 h-5 text-emerald-500" />,
-        uptime90: 99.99,
-        history: generateHistory(789),
-    },
-    {
-        id: "edge",
-        name: "Edge Network",
-        icon: <Activity className="w-5 h-5 text-amber-500" />,
-        uptime90: 100.0,
-        history: generateHistory(999), // Stable seed yielding no errors
-    },
-];
-
-const mockIncidents: Incident[] = [
-    {
-        id: "inc-1",
-        title: "Elevated Latency on Authentication API",
-        status: "resolved",
-        date: subDays(new Date(), 12),
-        impactedServices: ["Authentication API"],
-        updates: [
-            {
-                time: subDays(new Date(), 12),
-                message:
-                    "We are currently investigating reports of elevated latency affecting the Authentication API in the US-East region. Initial metrics show a 15% increase in response times.",
-            },
-            {
-                time: new Date(subDays(new Date(), 12).getTime() + 1000 * 60 * 45), // + 45 mins
-                message:
-                    "The issue has been identified. A recent deployment caused unexpected database locks. We are rolling back the update now.",
-            },
-            {
-                time: new Date(subDays(new Date(), 12).getTime() + 1000 * 60 * 120), // + 2 hrs
-                message:
-                    "The rollback is complete, and API latency has returned to normal baseline levels. We will continue monitoring the situation.",
-            },
-        ],
-    },
-    {
-        id: "inc-2",
-        title: "Brief Database Failover Window",
-        status: "resolved",
-        date: subDays(new Date(), 28),
-        impactedServices: ["Core Databases"],
-        updates: [
-            {
-                time: subDays(new Date(), 28),
-                message:
-                    "A scheduled primary-replica database failover took longer than anticipated. Some users may have experienced brief connection timeouts during this 3-minute window.",
-            },
-            {
-                time: new Date(subDays(new Date(), 28).getTime() + 1000 * 60 * 15), // + 15 mins
-                message:
-                    "Failover successfully completed. All database operations are normal and verified. No data loss occurred.",
-            },
-        ],
-    },
-];
-
-// --- Helpers ---
-const globalStatusConfig = {
+// --- Status Configs ---
+const statusColors = {
     operational: {
-        text: "All Systems Operational",
-        icon: CheckCircle2,
-        bg: "bg-emerald-500/10 dark:bg-emerald-500/10",
+        text: "is operational",
+        bg: "bg-emerald-500",
+        textCol: "text-emerald-500",
         border: "border-emerald-500/20",
-        textCol: "text-emerald-700 dark:text-emerald-400",
-        iconCol: "text-emerald-600 dark:text-emerald-400",
+        icon: CheckCircle2,
+        bgSoft: "bg-emerald-500/10",
+        badge: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
     },
     degraded: {
-        text: "Partial System Degradation",
-        icon: AlertCircle,
-        bg: "bg-amber-500/10 dark:bg-amber-500/10",
+        text: "is degraded",
+        bg: "bg-amber-500",
+        textCol: "text-amber-500",
         border: "border-amber-500/20",
-        textCol: "text-amber-700 dark:text-amber-400",
-        iconCol: "text-amber-600 dark:text-amber-400",
+        icon: AlertCircle,
+        bgSoft: "bg-amber-500/10",
+        badge: "bg-amber-500/10 text-amber-600 border-amber-500/20",
     },
     outage: {
-        text: "Major Service Outage",
-        icon: XCircle,
-        bg: "bg-red-500/10 dark:bg-red-500/10",
+        text: "is down",
+        bg: "bg-red-500",
+        textCol: "text-red-500",
         border: "border-red-500/20",
-        textCol: "text-red-700 dark:text-red-400",
-        iconCol: "text-red-600 dark:text-red-400",
+        icon: XCircle,
+        bgSoft: "bg-red-500/10",
+        badge: "bg-red-500/10 text-red-600 border-red-500/20",
+    },
+    paused: {
+        text: "is paused",
+        bg: "bg-zinc-500",
+        textCol: "text-zinc-500",
+        border: "border-zinc-500/20",
+        icon: Info,
+        bgSoft: "bg-zinc-500/10",
+        badge: "bg-zinc-500/10 text-zinc-600 border-zinc-500/20",
     },
 };
 
-const getGlobalStatus = (services: Service[]) => {
-    const latest = services.map((s) => s.history[s.history.length - 1]);
-    if (latest.some((l) => l.status === "outage")) return "outage";
-    if (latest.some((l) => l.status === "degraded")) return "degraded";
+// --- Uptime Bar Graphic ---
+function UptimeBar({ history }: { history: any[] }) {
+    // Generate an array of exactly 90 days for consistent layout width.
+    // If we have less data, we fill the beginning with 'unknown' state.
+    const maxDays = 90;
+    const paddingCount = Math.max(0, maxDays - (history?.length || 0));
+    const paddedHistory = [
+        ...Array(paddingCount).fill({ status: "unknown" }),
+        ...(history || []).slice(-maxDays)
+    ];
+
+    // Tooltip State (Optional, but adds to the polished feel)
+    const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
+
+    return (
+        <div className="w-full mt-8 mb-6 relative">
+            <div className="flex h-10 w-full items-end gap-1 overflow-hidden relative" onMouseLeave={() => setHoveredIdx(null)}>
+                {paddedHistory.map((day, idx) => {
+                    let bgColor = "bg-zinc-200 dark:bg-zinc-800"; // unknown/no-data
+                    if (day.status === "operational") bgColor = "bg-emerald-500";
+                    else if (day.status === "degraded") bgColor = "bg-amber-500";
+                    else if (day.status === "outage") bgColor = "bg-red-500";
+                    else if (day.status === "paused") bgColor = "bg-zinc-400";
+
+                    return (
+                        <div
+                            key={idx}
+                            onMouseEnter={() => setHoveredIdx(idx)}
+                            className={cn(
+                                "h-full flex-grow rounded-[2px] opacity-80 hover:opacity-100 transition-opacity cursor-crosshair",
+                                bgColor
+                            )}
+                        />
+                    );
+                })}
+            </div>
+
+            {/* Simple X-Axis Legend */}
+            <div className="flex items-center justify-between mt-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <span>90 days ago</span>
+                {hoveredIdx !== null ? (
+                    <span className="text-foreground absolute left-1/2 -translate-x-1/2">
+                        {paddedHistory[hoveredIdx].status === "unknown" ? "No Data" : paddedHistory[hoveredIdx].status}
+                    </span>
+                ) : (
+                    <span className="absolute left-1/2 -translate-x-1/2">100% Uptime</span>
+                )}
+                <span>Today</span>
+            </div>
+        </div>
+    );
+}
+
+// Determine status based on UptimeRobot logic
+function getServiceStatus(dayHistory: any[]): keyof typeof statusColors {
+    if (!dayHistory || dayHistory.length === 0) return "operational";
+    const today = dayHistory[dayHistory.length - 1];
+    if (today.status === "outage") return "outage";
+    if (today.status === "degraded") return "degraded";
     return "operational";
-};
+}
 
-// --- Animations ---
-const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.1,
-        },
-    },
-};
+function calculateResponseStats(data: ResponseTimeDto[]) {
+    if (!data || data.length === 0) return { avg: 0, max: 0, min: 0 };
+    const values = data.map((d) => d.value);
+    const sum = values.reduce((a, b) => a + b, 0);
+    return {
+        avg: Math.round(sum / values.length),
+        max: Math.max(...values),
+        min: Math.min(...values),
+    };
+}
 
-const itemVariants = {
-    hidden: { opacity: 0, y: 15 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" as const } },
-};
+// Custom SVG Line Chart
+function ResponseTimeChart({ data }: { data: ResponseTimeDto[] }) {
+    if (!data || data.length === 0)
+        return (
+            <div className="h-40 flex items-center justify-center text-sm text-gray-500 border border-dashed rounded-xl">
+                No response time data available for this monitor.
+            </div>
+        );
 
-// --- Main Page ---
+    const values = data.map((d) => d.value);
+    const min = Math.max(0, Math.min(...values) - 100); // 100ms padding
+    const max = Math.max(...values) + 100;
+
+    const width = 800; // Will scale via css
+    const height = 180;
+    const paddingX = 10;
+    const paddingY = 20;
+
+    const scaleX = (width - paddingX * 2) / Math.max(data.length - 1, 1);
+    const scaleY = (height - paddingY * 2) / (max - min || 1);
+
+    const points = data
+        .map((d, i) => {
+            const x = paddingX + i * scaleX;
+            const y = height - paddingY - (d.value - min) * scaleY;
+            return `${x},${y}`;
+        })
+        .join(" ");
+
+    const areaPoints = `${paddingX},${height} ${points} ${width - paddingX},${height}`;
+
+    return (
+        <div className="w-full relative rounded-xl border border-[var(--border)] bg-[var(--background)] p-4 overflow-hidden group">
+            <svg
+                viewBox={`0 0 ${width} ${height}`}
+                className="w-full h-auto max-h-[160px] overflow-visible"
+                preserveAspectRatio="none"
+            >
+                <defs>
+                    <linearGradient id="chart-gradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.25" />
+                        <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+                    </linearGradient>
+                </defs>
+                <polygon points={areaPoints} fill="url(#chart-gradient)" className="transition-all duration-700" />
+                <polyline
+                    points={points}
+                    fill="none"
+                    stroke="#3b82f6"
+                    strokeWidth="2.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="transition-all duration-700 hover:stroke-blue-400 group-hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                />
+            </svg>
+        </div>
+    );
+}
+
+// --- Main Page Component ---
 export default function StatusPage() {
     const [mounted, setMounted] = useState(false);
-    const [services, setServices] = useState<Service[]>([]);
-    const [globalStatus, setGlobalStatus] = useState<ServiceStatus>("operational");
+    const [services, setServices] = useState<ServiceStatusDto[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
-    // Tooltip State
-    const [tooltip, setTooltip] = useState<{
-        x: number;
-        y: number;
-        data: DayStatus;
-        serviceName: string;
-    } | null>(null);
+    const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+
+    const loadStatus = async (isManualRefresh = false) => {
+        if (isManualRefresh) setIsRefreshing(true);
+        try {
+            const response = await apiGetSystemStatus();
+            setServices(response.services);
+            setLastUpdated(new Date());
+
+            // If they have only 1 service, automatically open it
+            if (response.services.length === 1 && !selectedServiceId) {
+                setSelectedServiceId(response.services[0].id);
+            }
+        } catch (error) {
+            console.error("Failed to load UptimeRobot status", error);
+        } finally {
+            if (isManualRefresh) setIsRefreshing(false);
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        setServices(mockServices);
-        setGlobalStatus(getGlobalStatus(mockServices));
         setMounted(true);
+        loadStatus();
+        // REMOVED AUTO POLL PER USER REQUEST
     }, []);
 
-    if (!mounted) {
+    if (!mounted || loading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-background">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -246,262 +239,334 @@ export default function StatusPage() {
         );
     }
 
-    const GlobalStatusIcon = globalStatusConfig[globalStatus].icon;
+    // --- RENDER LIST VIEW ---
+    if (!selectedServiceId) {
+        return (
+            <main className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-foreground selection:bg-primary/20 flex flex-col">
+                <div className="flex-1 w-full max-w-[1400px] mx-auto px-6 py-12 md:py-20 lg:px-12">
+                    <header className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-border pb-8">
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight text-foreground flex items-center gap-3">
+                                <Activity className="w-8 h-8 text-blue-500" /> AuthX Status
+                            </h1>
+                            <p className="text-muted-foreground mt-2">
+                                Real-time and historical data on system performance.
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <span className="text-sm text-muted-foreground hidden sm:inline-block">
+                                Last updated: {lastUpdated ? format(lastUpdated, "HH:mm:ss") : "--:--:--"}
+                            </span>
+                            <button
+                                onClick={() => loadStatus(true)}
+                                disabled={isRefreshing}
+                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium transition-colors disabled:opacity-50"
+                            >
+                                <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+                                Refresh Status
+                            </button>
+                            <Link
+                                href="/dashboard"
+                                className="px-4 py-2 border border-border bg-card rounded-md text-sm font-medium hover:bg-accent transition-colors hidden sm:inline-block"
+                            >
+                                Return to Dashboard
+                            </Link>
+                        </div>
+                    </header>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {services.length === 0 ? (
+                            <div className="col-span-full p-12 text-center rounded-2xl border border-dashed border-[var(--border)] text-muted-foreground bg-[var(--background)] text-sm">
+                                No monitors currently tracked or the API connection is offline.
+                            </div>
+                        ) : (
+                            services.map((svc) => {
+                                const st = getServiceStatus(svc.history);
+                                const conf = statusColors[st];
+                                return (
+                                    <button
+                                        key={svc.id}
+                                        onClick={() => setSelectedServiceId(svc.id)}
+                                        className="w-full text-left group flex flex-col justify-between p-6 rounded-2xl border border-[var(--border)] bg-[var(--card)] hover:border-blue-500/50 dark:hover:border-blue-500/50 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-all shadow-sm hover:shadow-md gap-6 h-full"
+                                    >
+                                        <div className="flex items-start justify-between w-full">
+                                            <div className="flex items-center gap-4">
+                                                <div
+                                                    className={cn(
+                                                        "w-4 h-4 rounded-full shrink-0 shadow-[0_0_8px_rgba(0,0,0,0.1)]",
+                                                        conf.bg
+                                                    )}
+                                                />
+                                                <div>
+                                                    <h3 className="font-semibold text-xl text-foreground">
+                                                        {svc.name}
+                                                    </h3>
+                                                    <p
+                                                        className={cn(
+                                                            "text-xs font-bold uppercase tracking-wider mt-1",
+                                                            conf.textCol
+                                                        )}
+                                                    >
+                                                        {st}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                                        </div>
+                                        <div className="flex flex-col gap-1 w-full border-t border-[var(--border)] pt-4 mt-auto">
+                                            <p className="font-bold text-3xl text-foreground">
+                                                {svc.uptime90.toFixed(3)}%
+                                            </p>
+                                            <p className="text-xs uppercase font-bold text-muted-foreground tracking-wider">
+                                                90-Day Uptime
+                                            </p>
+                                        </div>
+                                    </button>
+                                );
+                            })
+                        )}
+                    </div>
+                </div>
+
+                <SiteFooter />
+            </main>
+        );
+    }
+
+    // --- RENDER DETAIL VIEW (UptimeRobot Clone - Full Width) ---
+    const svc = services.find((s) => s.id === selectedServiceId)!;
+    if (!svc) {
+        setSelectedServiceId(null);
+        return null;
+    }
+
+    const st = getServiceStatus(svc.history);
+    const conf = statusColors[st];
+    const stats = calculateResponseStats(svc.responseTimes || []);
 
     return (
-        <main className="min-h-screen bg-background text-foreground selection:bg-primary/20">
-            {/* Tooltip Overlay */}
-            <AnimatePresence>
-                {tooltip && (
-                    <div
-                        style={{ left: tooltip.x, top: tooltip.y }}
-                        className="fixed z-50 -translate-x-1/2 -translate-y-[calc(100%+12px)] pointer-events-none"
-                    >
-                        <motion.div
-                            initial={{ opacity: 0, y: 5, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 3, scale: 0.95 }}
-                            transition={{ duration: 0.1 }}
-                            className="bg-zinc-950/90 backdrop-blur border border-zinc-800 text-white shadow-2xl rounded-xl p-3.5 text-sm min-w-[200px]"
-                        >
-                            <div className="flex items-center justify-between mb-2">
-                                <span className="font-semibold text-zinc-100">
-                                    {format(tooltip.data.date, "MMM d, yyyy")}
-                                </span>
-                                <span
-                                    className={cn(
-                                        "px-2 py-0.5 rounded-full text-[10px] uppercase font-bold tracking-wider",
-                                        tooltip.data.status === "operational"
-                                            ? "bg-emerald-500/20 text-emerald-400"
-                                            : tooltip.data.status === "degraded"
-                                                ? "bg-amber-500/20 text-amber-400"
-                                                : "bg-red-500/20 text-red-400"
-                                    )}
-                                >
-                                    {tooltip.data.status}
-                                </span>
-                            </div>
-                            <div className="text-zinc-400 text-xs flex justify-between items-center bg-white/5 p-2 rounded-lg">
-                                <span className="font-medium">{tooltip.serviceName}</span>
-                                <span className="text-zinc-200">{tooltip.data.uptime.toFixed(2)}%</span>
-                            </div>
-                            {/* Tooltip Arrow */}
-                            <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-zinc-950/90 border-r border-b border-zinc-800 rotate-45"></div>
-                        </motion.div>
+        <main className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-foreground selection:bg-primary/20 flex flex-col">
+            <div className="flex-1 w-full max-w-[1400px] mx-auto px-6 py-8 md:py-12 lg:px-12">
+
+                {/* Header & Breadcrumbs */}
+                <header className="mb-10 border-b border-border pb-8">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
+                        <div>
+                            <h1 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-3 mb-2">
+                                <Activity className="w-6 h-6 text-blue-500" /> AuthX Status
+                            </h1>
+                            <button
+                                onClick={() => setSelectedServiceId(null)}
+                                className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground hover:underline transition-colors"
+                            >
+                                <ArrowLeft className="w-4 h-4" /> Back to systems list
+                            </button>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <span className="text-sm text-muted-foreground hidden sm:inline-flex items-center gap-2 font-medium">
+                                <Clock className="w-4 h-4" />
+                                Last updated: {lastUpdated ? format(lastUpdated, "HH:mm:ss") : "--:--:--"}
+                            </span>
+                            <button
+                                onClick={() => loadStatus(true)}
+                                disabled={isRefreshing}
+                                className="flex items-center gap-2 px-4 py-2 bg-[var(--card)] hover:bg-accent border border-border text-foreground rounded-md text-sm font-medium transition-colors disabled:opacity-50 shadow-sm"
+                            >
+                                <RefreshCw className={cn("w-4 h-4", isRefreshing && "animate-spin")} />
+                                Refresh Status
+                            </button>
+                            <Link
+                                href="/dashboard"
+                                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium shadow-sm transition-colors"
+                            >
+                                Dashboard
+                            </Link>
+                        </div>
                     </div>
-                )}
-            </AnimatePresence>
+                </header>
 
-            {/* Navbar */}
-            <header className="fixed top-0 inset-x-0 h-16 border-b border-border bg-background/80 backdrop-blur-md z-40 flex items-center px-6">
-                <div className="max-w-4xl mx-auto w-full flex items-center justify-between">
-                    <Link href="/" className="font-bold text-lg flex items-center gap-2 group">
-                        <Shield className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
-                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-                            AuthX Status
-                        </span>
-                    </Link>
-                    <Link
-                        href="/dashboard"
-                        className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-2"
-                    >
-                        <ArrowLeft className="w-4 h-4" /> Go to Dashboard
-                    </Link>
-                </div>
-            </header>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-12">
 
-            {/* Main Content */}
-            <div className="pt-28 pb-20 px-6">
-                <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="show"
-                    className="max-w-4xl mx-auto space-y-12"
-                >
-                    {/* Global Status Banner */}
-                    <motion.div
-                        variants={itemVariants}
+                    {/* Live Status Banner */}
+                    <section
                         className={cn(
-                            "p-6 md:p-8 rounded-2xl border transition-colors duration-500 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 overflow-hidden relative group",
-                            globalStatusConfig[globalStatus].bg,
-                            globalStatusConfig[globalStatus].border
+                            "p-6 md:p-10 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 transition-colors shadow-sm",
+                            conf.bgSoft,
+                            conf.border
                         )}
                     >
-                        {/* Background Glow */}
-                        <div
-                            className={cn(
-                                "absolute -inset-1 blur-3xl opacity-20 group-hover:opacity-30 transition-opacity",
-                                globalStatus === "operational" ? "bg-emerald-500" : globalStatus === "degraded" ? "bg-amber-500" : "bg-red-500"
-                            )}
-                        />
-
-                        <div className="flex items-center gap-4 relative z-10">
-                            <div className={cn("p-3 rounded-full bg-background/50 backdrop-blur border border-white/10 dark:border-black/10 shadow-sm")}>
-                                <GlobalStatusIcon
-                                    className={cn("w-8 h-8", globalStatusConfig[globalStatus].iconCol)}
-                                />
-                            </div>
+                        <div className="flex items-center gap-6">
+                            <conf.icon className={cn("w-12 h-12", conf.textCol)} />
                             <div>
-                                <h1
-                                    className={cn(
-                                        "text-2xl md:text-3xl font-bold tracking-tight",
-                                        globalStatusConfig[globalStatus].textCol
-                                    )}
-                                >
-                                    {globalStatusConfig[globalStatus].text}
-                                </h1>
-                                <p className="text-muted-foreground mt-1 text-sm font-medium">
-                                    Last updated {format(new Date(), "MMMM d, yyyy 'at' HH:mm")}
+                                <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-1 text-foreground">
+                                    {svc.name}
+                                </h2>
+                                <p className={cn("text-lg font-medium", conf.textCol)}>
+                                    Service {conf.text}
                                 </p>
                             </div>
                         </div>
-
-                        <div className="relative z-10 shrink-0 self-start sm:self-auto bg-background/50 border border-border backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm flex items-center gap-3">
-                            <div className="text-sm">
-                                <div className="text-muted-foreground text-xs uppercase tracking-wider font-semibold mb-0.5">Uptime</div>
-                                <div className="font-bold text-lg">99.98%</div>
-                            </div>
-                            <div className="w-px h-8 bg-border"></div>
-                            <div className="text-sm">
-                                <div className="text-muted-foreground text-xs uppercase tracking-wider font-semibold mb-0.5">Region</div>
-                                <div className="font-bold text-lg">Global</div>
-                            </div>
+                        <div className="bg-background/80 backdrop-blur-sm border border-border px-5 py-2.5 rounded-lg text-sm font-bold uppercase tracking-wider text-muted-foreground shadow-sm flex items-center gap-2">
+                            <span className="relative flex h-3 w-3">
+                                <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", conf.bg)}></span>
+                                <span className={cn("relative inline-flex rounded-full h-3 w-3", conf.bg)}></span>
+                            </span>
+                            Live Monitoring
                         </div>
-                    </motion.div>
+                    </section>
 
-                    {/* Service List */}
-                    <motion.div variants={itemVariants} className="space-y-6">
-                        <h2 className="text-xl font-semibold tracking-tight">System Metrics</h2>
-                        <div className="grid gap-4">
-                            {services.map((service) => (
-                                <div
-                                    key={service.id}
-                                    className="card-panel p-5 md:p-6 rounded-2xl hover:shadow-md transition-shadow"
-                                >
-                                    {/* Service Header */}
-                                    <div className="flex items-center justify-between mb-6">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 rounded-lg bg-secondary border border-border">
-                                                {service.icon}
-                                            </div>
-                                            <h3 className="text-lg font-medium">{service.name}</h3>
-                                            <Link href="#" className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-primary">
-                                                <ArrowUpRight className="w-4 h-4" />
-                                            </Link>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="font-semibold text-foreground text-lg">
-                                                {service.uptime90.toFixed(2)}%
-                                            </p>
-                                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-0.5">
-                                                uptime
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Service Uptime Visualizer */}
+                    {/* TWO COLUMN WIDE LAYOUT FOR METRICS AND LOGS */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                        {/* LEFT COLUMN - Metrics & Charts (Wider) */}
+                        <div className="lg:col-span-8 space-y-12">
+                            {/* Uptime Blocks */}
+                            <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 md:p-8 shadow-sm">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-8 border-b border-[var(--border)] pb-6">
                                     <div>
-                                        <div className="flex items-center w-full h-10 gap-1 md:gap-[3px]">
-                                            {service.history.map((day, i) => (
-                                                <div
-                                                    key={i}
-                                                    onMouseEnter={(e) => {
-                                                        const rect = e.currentTarget.getBoundingClientRect();
-                                                        setTooltip({
-                                                            x: rect.left + rect.width / 2,
-                                                            y: rect.top,
-                                                            data: day,
-                                                            serviceName: service.name,
-                                                        });
-                                                    }}
-                                                    onMouseLeave={() => setTooltip(null)}
-                                                    className={cn(
-                                                        "flex-1 h-full rounded-[2px] cursor-pointer transition-all hover:opacity-70 hover:scale-[1.1]",
-                                                        day.status === "operational"
-                                                            ? "bg-emerald-500"
-                                                            : day.status === "degraded"
-                                                                ? "bg-amber-500"
-                                                                : "bg-red-500"
-                                                    )}
-                                                />
-                                            ))}
+                                        <h3 className="text-2xl font-bold tracking-tight text-foreground mb-1">
+                                            Historical Uptime
+                                        </h3>
+                                        <p className="text-sm text-muted-foreground">System availability over various timeframes.</p>
+                                    </div>
+                                    <div className="text-left sm:text-right mt-4 sm:mt-0">
+                                        <span
+                                            className={cn(
+                                                "text-4xl md:text-5xl font-extrabold tracking-tight block",
+                                                conf.textCol
+                                            )}
+                                        >
+                                            {svc.uptime90.toFixed(3)}%
+                                        </span>
+                                        <p className="text-xs uppercase font-bold tracking-wider text-muted-foreground mt-1">
+                                            90-Day Aggregate
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <UptimeBar history={svc.history || []} />
+
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mt-8">
+                                    {[
+                                        { label: "Last 24 hours", val: svc.uptime1d },
+                                        { label: "Last 7 days", val: svc.uptime7d },
+                                        { label: "Last 30 days", val: svc.uptime30d },
+                                        { label: "Last 90 days", val: svc.uptime90 },
+                                    ].map((interval) => (
+                                        <div
+                                            key={interval.label}
+                                            className="bg-[var(--background)] border border-[var(--border)] p-5 rounded-xl flex flex-col gap-1.5"
+                                        >
+                                            <span className="text-2xl md:text-3xl font-bold text-foreground">
+                                                {interval.val === 100 ? "100.00" : interval.val.toFixed(2)}%
+                                            </span>
+                                            <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                                                {interval.label}
+                                            </span>
                                         </div>
-                                        <div className="flex justify-between items-center mt-3 text-xs text-muted-foreground font-medium uppercase tracking-wider">
-                                            <span>{NUM_DAYS} days ago</span>
-                                            <div className="flex-1 mx-4 border-b border-border border-dashed h-0 opacity-50"></div>
-                                            <span>{Math.round(service.uptime90)}% uptime</span>
-                                            <div className="flex-1 mx-4 border-b border-border border-dashed h-0 opacity-50"></div>
-                                            <span>Today</span>
+                                    ))}
+                                </div>
+                            </section>
+
+                            {/* Response Time Chart */}
+                            <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 md:p-8 shadow-sm">
+                                <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6 border-b border-[var(--border)] pb-6">
+                                    <div>
+                                        <h3 className="text-2xl font-bold tracking-tight text-foreground mb-1">
+                                            Response Time
+                                        </h3>
+                                        <p className="text-sm font-medium text-muted-foreground">Rolling 48-hour latency metrics.</p>
+                                    </div>
+                                    <div className="flex flex-wrap gap-4 md:gap-8">
+                                        <div className="bg-[var(--background)] px-4 py-2 rounded-lg border border-[var(--border)] min-w-[120px]">
+                                            <p className="text-2xl font-bold text-blue-600 dark:text-blue-500">{stats.avg}ms</p>
+                                            <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground mt-0.5">Average</p>
+                                        </div>
+                                        <div className="bg-[var(--background)] px-4 py-2 rounded-lg border border-[var(--border)] min-w-[120px]">
+                                            <p className="text-2xl font-bold text-amber-600 dark:text-amber-500">{stats.max}ms</p>
+                                            <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground mt-0.5">Maximum</p>
+                                        </div>
+                                        <div className="bg-[var(--background)] px-4 py-2 rounded-lg border border-[var(--border)] min-w-[120px]">
+                                            <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-500">{stats.min}ms</p>
+                                            <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground mt-0.5">Minimum</p>
                                         </div>
                                     </div>
                                 </div>
-                            ))}
+                                <div className="pt-2">
+                                    <ResponseTimeChart data={svc.responseTimes || []} />
+                                </div>
+                            </section>
                         </div>
-                    </motion.div>
 
-                    {/* Past Incidents Timeline */}
-                    <motion.div variants={itemVariants} className="space-y-6 pt-6">
-                        <h2 className="text-xl font-semibold tracking-tight">Past Incidents</h2>
-                        <div className="relative border-l-2 border-border/60 ml-3 pl-8 md:pl-10 space-y-12 pb-8">
-                            {mockIncidents.map((incident) => (
-                                <div key={incident.id} className="relative group">
-                                    {/* Timeline Dot */}
-                                    <div className="absolute -left-[41px] md:-left-[49px] top-1.5 w-5 h-5 rounded-full bg-background border-[3px] border-border group-hover:border-primary/50 transition-colors flex items-center justify-center z-10 box-content">
-                                        {incident.status === "resolved" && (
-                                            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                                        )}
-                                    </div>
+                        {/* RIGHT COLUMN - Recent Events Logs (Narrower) */}
+                        <div className="lg:col-span-4">
+                            <section className="bg-[var(--card)] border border-[var(--border)] rounded-2xl p-6 md:p-8 shadow-sm h-full flex flex-col">
+                                <h3 className="text-2xl font-bold tracking-tight text-foreground mb-6 border-b border-[var(--border)] pb-6">
+                                    Incident Timeline
+                                </h3>
 
-                                    <div className="space-y-4">
-                                        <div>
-                                            <h3 className="text-xl font-semibold tracking-tight mb-2">
-                                                {incident.title}
-                                            </h3>
-                                            <div className="flex flex-wrap items-center gap-3 text-sm">
-                                                <span
-                                                    className={cn(
-                                                        "inline-flex font-semibold tracking-wider uppercase text-[10px] px-2.5 py-1 rounded-full",
-                                                        incident.status === "resolved"
-                                                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20"
-                                                            : "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20"
-                                                    )}
-                                                >
-                                                    {incident.status}
-                                                </span>
-                                                <span className="text-muted-foreground font-medium flex items-center gap-1.5">
-                                                    <Clock className="w-3.5 h-3.5" />
-                                                    {format(incident.date, "MMMM d, yyyy")}
-                                                </span>
+                                <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-0">
+                                    {!svc.events || svc.events.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center py-12 text-center">
+                                            <CheckCircle2 className="w-12 h-12 text-emerald-500/50 mb-4" />
+                                            <p className="text-foreground font-semibold text-lg">Clean Record</p>
+                                            <p className="text-muted-foreground text-sm mt-1">No incidents logged within the retention period.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="relative border-l-2 border-[var(--border)] ml-3 space-y-8 pb-4">
+                                            {svc.events.map((ev, i) => {
+                                                const eventDate = new Date(ev.datetime * 1000);
+                                                const isUp = ev.type === "up";
+                                                const isDown = ev.type === "down";
+
+                                                return (
+                                                    <div key={i} className="relative group pl-8">
+                                                        {/* Timeline Dot */}
+                                                        <div className={cn(
+                                                            "absolute -left-[9px] top-1 w-4 h-4 rounded-full border-2 border-[var(--card)] z-10 transition-transform group-hover:scale-125",
+                                                            isUp ? "bg-emerald-500" : isDown ? "bg-red-500" : "bg-blue-500"
+                                                        )} />
+
+                                                        {/* Event Content */}
+                                                        <div className="flex flex-col gap-2">
+                                                            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-1 xl:gap-4 mb-1">
+                                                                <h4 className={cn(
+                                                                    "text-base font-bold tracking-tight",
+                                                                    isUp ? "text-emerald-600 dark:text-emerald-400" : isDown ? "text-red-600 dark:text-red-400" : "text-blue-600 dark:text-blue-500"
+                                                                )}>
+                                                                    {ev.title}
+                                                                </h4>
+                                                                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5 whitespace-nowrap">
+                                                                    <Clock className="w-3.5 h-3.5" />
+                                                                    {format(eventDate, "MMM d, HH:mm")}
+                                                                </span>
+                                                            </div>
+
+                                                            {ev.detail && ev.detail !== "" && (
+                                                                <div className="bg-[var(--background)] p-3.5 rounded-xl border border-[var(--border)] text-sm text-foreground/90 font-medium leading-relaxed shadow-sm">
+                                                                    {ev.detail}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+
+                                            <div className="relative pt-6 pl-8">
+                                                <div className="absolute -left-[29px] md:-left-[37px] top-[22px] w-1.5 h-1.5 rounded-full bg-[var(--border)]"></div>
+                                                <div className="text-gray-400 dark:text-zinc-600 text-xs font-semibold uppercase tracking-wider">
+                                                    Start of record
+                                                </div>
                                             </div>
                                         </div>
-
-                                        <div className="space-y-6 mt-6 pt-2">
-                                            {incident.updates.map((update, idx) => (
-                                                <div key={idx} className="relative">
-                                                    <div className="text-sm font-bold mb-1.5 text-foreground flex items-center gap-2">
-                                                        {format(update.time, "MMM d, HH:mm zzz")}
-                                                    </div>
-                                                    <p className="text-muted-foreground leading-relaxed">
-                                                        {update.message}
-                                                    </p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
-                            ))}
-
-                            {/* End of timeline indicator */}
-                            <div className="relative">
-                                <div className="absolute -left-[35px] md:-left-[43px] top-0.5 w-2 h-2 rounded-full bg-border"></div>
-                                <div className="text-muted-foreground text-sm font-medium">
-                                    No more incidents reported in the past {NUM_DAYS} days.
-                                </div>
-                            </div>
+                            </section>
                         </div>
-                    </motion.div>
+                    </div>
                 </motion.div>
             </div>
+
+            <SiteFooter />
         </main>
     );
 }

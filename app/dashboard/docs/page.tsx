@@ -253,6 +253,13 @@ export default function DocsPage() {
               <Link href="/dashboard" className="btn-secondary h-10 px-4 text-sm">
                 Open Dashboard
               </Link>
+              <Link href="/status" className="inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--card)] px-4 h-10 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-[var(--input)]">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                All systems operational
+              </Link>
             </div>
           </DocSection>
         </div>

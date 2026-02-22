@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion, useScroll, useTransform } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
+import { SiteFooter } from "@/components/site-footer";
 
 function StorySection({
   eyebrow,
@@ -560,37 +561,7 @@ AUTHX_BASE_URL=https://api.authx.dev
           </div>
         </section>
       </main>
-
-      <footer className="border-t border-[var(--border)] bg-[var(--background)] py-12">
-        <div className="mx-auto grid w-full max-w-7xl gap-8 px-6 md:grid-cols-4">
-          <div className="md:col-span-2">
-            <p className="text-sm font-semibold">AuthX</p>
-            <p className="mt-2 max-w-md text-sm text-gray-500">
-              Authentication infrastructure for modern engineering teams. Fast to integrate and stable in production.
-            </p>
-            <p className="mt-4 text-xs text-gray-500">© {new Date().getFullYear()} AuthX Inc.</p>
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold">Product</p>
-            <ul className="mt-3 space-y-2 text-sm text-gray-500">
-              <li><Link href="/auth/signup" className="transition-colors hover:text-[var(--foreground)]">Sign Up</Link></li>
-              <li><Link href="/auth/login" className="transition-colors hover:text-[var(--foreground)]">Log In</Link></li>
-              <li><Link href="/docs" className="transition-colors hover:text-[var(--foreground)]">Documentation</Link></li>
-              <li><Link href="/status" className="transition-colors hover:text-[var(--foreground)]">System Status</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <p className="text-sm font-semibold">Legal</p>
-            <ul className="mt-3 space-y-2 text-sm text-gray-500">
-              <li><Link href="/terms" className="transition-colors hover:text-[var(--foreground)]">Terms of Service</Link></li>
-              <li><Link href="/privacy" className="transition-colors hover:text-[var(--foreground)]">Privacy Policy</Link></li>
-              <li><a href="mailto:support@authx.dev" className="transition-colors hover:text-[var(--foreground)]">Contact Support</a></li>
-            </ul>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

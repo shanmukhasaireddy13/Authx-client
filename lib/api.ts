@@ -65,6 +65,48 @@ export interface ApiErrorPayload {
     details?: Record<string, string>;
 }
 
+export interface DayStatusDto {
+    date: string;
+    status: "operational" | "degraded" | "outage";
+    uptime: number;
+}
+
+export interface DayStatusDto {
+    date: string;
+    status: "operational" | "degraded" | "outage";
+    uptime: number;
+}
+
+export interface ResponseTimeDto {
+    datetime: number;
+    value: number;
+}
+
+export interface EventDto {
+    type: string;
+    title: string;
+    detail: string;
+    datetime: number;
+    duration: number;
+}
+
+export interface ServiceStatusDto {
+    id: string;
+    name: string;
+    uptime1d: number;
+    uptime7d: number;
+    uptime30d: number;
+    uptime90: number;
+    history: DayStatusDto[];
+    responseTimes: ResponseTimeDto[];
+    events: EventDto[];
+}
+
+export interface SystemStatusResponse {
+    globalStatus: "operational" | "degraded" | "outage";
+    services: ServiceStatusDto[];
+}
+
 export class ApiError extends Error {
     status: number;
     code?: string;
@@ -326,4 +368,8 @@ export async function apiResetPasswordWithMagicLink(data: {
         method: "POST",
         body: JSON.stringify(data),
     });
+}
+
+export async function apiGetSystemStatus(): Promise<SystemStatusResponse> {
+    return request<SystemStatusResponse>("/status/monitors");
 }
